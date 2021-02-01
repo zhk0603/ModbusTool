@@ -147,7 +147,7 @@ namespace ModbusLib.Protocols
             var writer = new ByteArrayWriter();
 
             //unit identifier (address)
-            writer.WriteByte(server.Address);
+            writer.WriteByte(data.Address);
 
             if (command.ExceptionCode == 0)
             {
@@ -191,8 +191,9 @@ namespace ModbusLib.Protocols
 
             //address
             var address = incoming.ReadByte();
+            data.Address = server.AddressFromIncommingData ? address : server.Address;
 
-            if (address == server.Address)
+            if (server.CanHandleIncommingData(address))
             {
                 //function code
                 var fncode = incoming.ReadByte();

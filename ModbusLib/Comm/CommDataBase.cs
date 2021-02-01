@@ -50,5 +50,10 @@ namespace ModbusLib
         /// Data incoming from the remote point, toward the local application
         /// </summary>
         public ByteArrayReader IncomingData { get; internal set; }
+
+        /// <summary>
+        /// The address of this "device"
+        /// </summary>
+        public byte Address { get; internal set; }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO.Ports;
 using System.Net;
 using System.Net.Sockets;
@@ -15,6 +16,7 @@ namespace ModbusSlave
     {
                     
         private Function _function = Function.HoldingRegister;
+        private List<ICommServer> _listenerList = new List<ICommServer>();
         private ICommServer _listener;
         private SerialPort _uart;
         private Thread _thread;
@@ -51,7 +53,7 @@ namespace ModbusSlave
                     case CommunicationMode.RTU:
                         _uart = new SerialPort(PortName, Baud, Parity, DataBits, StopBits);
                         _uart.Open();
-                        var rtuServer = new ModbusServer(new ModbusRtuCodec()) { Address = SlaveId };
+                        var rtuServer = new ModbusServer(new ModbusRtuCodec()) ;
                         rtuServer.OutgoingData += DriverOutgoingData;
                         rtuServer.IncommingData += DriverIncommingData;
                         _listener = _uart.GetListener(rtuServer);
@@ -64,7 +66,7 @@ namespace ModbusSlave
                         _socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
                         _socket.Bind(new IPEndPoint(IPAddress.Any, TCPPort));
                         //create a server driver
-                        var udpServer = new ModbusServer(new ModbusTcpCodec()) { Address = SlaveId };
+                        var udpServer = new ModbusServer(new ModbusTcpCodec()) ;
                         udpServer.OutgoingData += DriverOutgoingData;
                         udpServer.IncommingData += DriverIncommingData;
                         //listen for an incoming request
@@ -103,7 +105,7 @@ namespace ModbusSlave
         /// </summary>
         protected void Worker()
         {
-            var server = new ModbusServer(new ModbusTcpCodec()) { Address = SlaveId };
+            var server = new ModbusServer(new ModbusTcpCodec()) {AddressFromIncommingData = true};
             server.IncommingData += DriverIncommingData;
             server.OutgoingData += DriverOutgoingData;
             try
@@ -111,9 +113,10 @@ namespace ModbusSlave
                 while (_thread.ThreadState == ThreadState.Running)
                 {
                     //wait for an incoming connection
-                    _listener = _socket.GetTcpListener(server);
-                    _listener.ServeCommand += listener_ServeCommand;
-                    _listener.Start();
+                    var listener = _socket.GetTcpListener(server);
+                    listener.ServeCommand += listener_ServeCommand;
+                    listener.Start();
+                    _listenerList.Add(listener);
                     AppendLog(String.Format("Accepted connection."));
                     Thread.Sleep(1);
                 }

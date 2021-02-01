@@ -47,9 +47,15 @@ namespace ModbusLib.Protocols
         }
 
         /// <summary>
-        /// The address of this "device"
+        /// The address of this "device". 当<see cref="AddressFromIncommingData"/>为<c>true</c>时，此属性无效。
         /// </summary>
         public byte Address { get; set; }
 
+        public bool AddressFromIncommingData { get; set; }
+
+        public bool CanHandleIncommingData(byte incommingAddress)
+        {
+            return AddressFromIncommingData || incommingAddress == Address;
+        }
     }
 }

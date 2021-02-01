@@ -30,7 +30,7 @@ namespace ModbusLib.Protocols
 
         void OnOutgoingData(byte[] data);
         void OnIncommingData(byte[] data, int len);
-
+        byte Address { get; set; }
 
     }
 }
